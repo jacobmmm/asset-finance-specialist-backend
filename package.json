@@ -1,0 +1,20 @@
+{
+  "name": "asset-finance-specialist-backend",
+  "version": "1.0.0",
+  "description": "backend code consisting of RESTful apis for the finance application website",
+  "main": "index.js",
+  "scripts": {
+    "devStart": "nodemon index.js"
+  },
+  "author": "Jacob Mammen",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.2",
+    "mongodb": "^6.13.1",
+    "mongoose": "^8.10.1"
+  },
+  "devDependencies": {
+    "dotenv": "^16.4.7",
+    "nodemon": "^3.1.9"
+  }
+}
