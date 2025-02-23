@@ -9,7 +9,11 @@
   "author": "Jacob Mammen",
   "license": "ISC",
   "dependencies": {
+    "bcrypt": "^5.1.1",
+    "config": "^3.3.12",
     "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "moment": "^2.30.1",
     "mongodb": "^6.13.1",
     "mongoose": "^8.10.1"
   },
