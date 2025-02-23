@@ -138,7 +138,7 @@ router.get('/getFinanceApplication', async(req,res) => {
 router.delete('/deleteFinanceApplication', async(req,res) => {
 
     const user = await User.findOne({email:req.body.email})
-    if(!user) console.log('email not found')
+    if(!user) return res.status(400).send('email not found')
     const userid = user._id;
     try{
     const financial = await Financial.findOne({userid:userid,income:req.body.income,assets:req.body.assets,liabilities:req.body.liabilities})
@@ -160,6 +160,25 @@ router.delete('/deleteFinanceApplication', async(req,res) => {
     console.log("Error in finding financial application: ", error)
 }})
 
+router.put('/updateFinanceApplication', async(req,res) => {
 
+    const user = await User.findOne({email:req.body.email})
+    if(!user) return res.status(400).send('email not found')
+    const userid = user._id;
+
+        try{
+            const financial = await Financial.findOne({userid:userid,income:req.body.income,assets:req.body.assets,liabilities:req.body.liabilities})
+        
+        }catch(error){
+            console.log("Error in finding financial application: ", error)
+        }    
+
+
+
+
+
+
+
+    } )
 
 module.exports = router;
