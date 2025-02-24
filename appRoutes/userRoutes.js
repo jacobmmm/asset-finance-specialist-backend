@@ -165,9 +165,29 @@ router.put('/updateFinanceApplication', async(req,res) => {
     const user = await User.findOne({email:req.body.email})
     if(!user) return res.status(400).send('email not found')
     const userid = user._id;
+    const attributes = req.body.attributes;
+    const values = req.body.values;
+    const attrLength = attributes.length;
 
         try{
             const financial = await Financial.findOne({userid:userid,income:req.body.income,assets:req.body.assets,liabilities:req.body.liabilities})
+
+            for(let i=0;i<attrLength;i++){
+                financial[attributes[i]] = values[i];
+            }
+
+            console.log("Financial object to be updated: ", financial);
+            try{
+                const updatedFinancial = await financial.save();
+                if (!updatedFinancial) {
+                    return res.status(404).json({ message: "Financial record not found." });
+                }
+        
+                res.status(200).json({ message: "Financial record updated successfully.", data: updatedFinancial });
+            }catch(error){
+                console.log("Error in updating financial application: ", error)
+                res.status(500).json({ message: "Server error", error: error.message });
+            }
         
         }catch(error){
             console.log("Error in finding financial application: ", error)
