@@ -3,6 +3,14 @@ const app = express();
 const mongoose = require('mongoose');
 const { connectDB } = require('./startup/database');
 const  setupRoutes  = require('./startup/routes');
+const cors = require('cors');
+
+app.use(cors({
+  origin: 'http://localhost:3001', // Allow only frontend
+  methods: 'GET,POST,PUT,DELETE',
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+}));
 
 
 // mongoose.connect('mongodb://localhost:27017/Cluster0DB', { useNewUrlParser: true, useUnifiedTopology: true });

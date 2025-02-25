@@ -77,13 +77,46 @@ router.post('/register', async(req,res) => {
 }
 )
 
-router.get('/login', async(req,res) => {
+// router.get('/login', async(req,res) => {
+
+//     const { email, password } = req.query;
+
+//     console.log("Email: ", email);
+//     console.log("Password   : ", password);
+
+//     const rUser = await User.findOne({email:email})
+
+//     if(!rUser)return res.status(400).send('Invalid email')
+
+    
+
+//     //const validPassword = await bcrypt.compare(req.body.password, rUser.password)
+//     const validPassword = await bcrypt.compare(password, rUser.password)
+//     if(!validPassword) return res.status(400).send('Invalid  password')
+
+//     const token = generateAuthToken(rUser)
+
+//     res.status(200).json({'message':'Login successful'})
+    
+    
+//     //res.header('x-auth-token', token).send(_.pick(rUser,['regId','phoneNumber']))
+
+// })
+
+router.post('/login', async(req,res) => {
+
+    //const { email, password } = req.query;
+
+
 
     const rUser = await User.findOne({email:req.body.email})
 
     if(!rUser)return res.status(400).send('Invalid email')
 
+    
+
     const validPassword = await bcrypt.compare(req.body.password, rUser.password)
+   
     if(!validPassword) return res.status(400).send('Invalid  password')
 
     const token = generateAuthToken(rUser)
