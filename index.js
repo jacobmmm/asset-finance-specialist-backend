@@ -6,7 +6,7 @@ const  setupRoutes  = require('./startup/routes');
 const cors = require('cors');
 
 app.use(cors({
-  origin: 'http://localhost:3001', // Allow only frontend
+  origin: 'http://localhost:3000', // Allow only frontend
   methods: 'GET,POST,PUT,DELETE',
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,

@@ -14,6 +14,10 @@ const FinancialSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    expenses: {
+        type: String,
+        required: true
+    },  
     liabilities: {
         type: String,
         required: true

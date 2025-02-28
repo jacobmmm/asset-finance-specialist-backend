@@ -2,7 +2,7 @@ const express = require('express')
 const router = express.Router();
 const bcrypt = require('bcrypt');
 const moment = require('moment');
-// const _ = require('lodash');
+const _ = require('lodash');
 
 const {User ,generateAuthToken} = require('../models/user')
 const Financial = require('../models/financial')
@@ -33,6 +33,8 @@ router.post('/register', async(req,res) => {
     const name = req.body.firstName + " " + req.body.lastName;
     const email = req.body.email;
     const dob = moment(req.body.DOB, "DD-MM-YYYY").toDate();
+    const age = moment().diff(moment(dob), 'years');
+    console.log("Age: ", age);
     console.log("state: ", req.body.state);
     if(req.body.address2){
         address = req.body.address1 + ",\t" + req.body.address2+ ",\t" + req.body.suburb + ",\t" + req.body.state + ",\t" + req.body.postcode;
@@ -128,6 +130,17 @@ router.post('/login', async(req,res) => {
 
 })
 
+router.get('/getUser', async(req,res) => {
+
+    const user = await User.findOne({email:req.query.userEmail})  
+    if(!user) return res.status(400).send('email not found') 
+
+    const userData = _.pick(user, [ 'name', 'email', 'address','dob']);
+    res.status(200).json({ userData });
+    
+
+    })
+
 router.post('/addFinanceApplication', async(req,res) => { 
 
     const user = await User.findOne({email:req.body.email})
@@ -135,19 +148,20 @@ router.post('/addFinanceApplication', async(req,res) => {
     const userid = user._id;
     console.log("Extracted User id: ", userid);
 
-    const newFinancial = new Financial({userid, income:req.body.income, assets:req.body.assets, liabilities:req.body.liabilities})
+    const newFinancial = new Financial({userid, income:req.body.income, assets:req.body.assets, expenses:req.body.expenses, liabilities:req.body.liabilities})
     console.log("New Financial object: ", newFinancial);
 
     try {
         
         await newFinancial.save();
+        res.status(201).json({ message: "Financial application created successfully", });
 
         
     } catch (error) {
         res.status(500).json({ message: "Server error", error: error.message });
     }
 
-    res.status(201).json({ message: "Financial application created successfully", });
+    
 
 
 
@@ -156,42 +170,89 @@ router.post('/addFinanceApplication', async(req,res) => {
 
 router.get('/getFinanceApplication', async(req,res) => {
 
-    const user = await User.findOne({email:req.body.email})
+    //const user = await User.findOne({email:req.body.email})
+    console.log("request query: ", req.query);
+    const user = await User.findOne({email:req.query.userEmail})
+    console.log("User object in get finance: ", user);
     if(!user) return res.status(400).send('email not found')
     const userid = user._id;
     try{
         const financials = await Financial.find({ userid: userid });
-        console.log("Financials for ",req.body.email,": " ,financials);
+        console.log("Financials for ",req.query.email,": " ,financials);
         res.status(200).json({ financials });
     }catch(error){
         res.status(500).json({ message: "Server error", error: error.message });
     }
     } )
 
-router.delete('/deleteFinanceApplication', async(req,res) => {
+// router.delete('/deleteFinanceApplication', async(req,res) => {
 
-    const user = await User.findOne({email:req.body.email})
-    if(!user) return res.status(400).send('email not found')
-    const userid = user._id;
-    try{
-    const financial = await Financial.findOne({userid:userid,income:req.body.income,assets:req.body.assets,liabilities:req.body.liabilities})
-    const financialId = financial._id;
-    console.log("Financial object to be deleted: ", financial);
-    try{
-        const deletedFinancial = await Financial.findByIdAndDelete(financialId);
-        if (!deletedFinancial) {
-            return res.status(404).json({ message: "Financial record not found." });
-        }
+//     const user = await User.findOne({email:req.body.email})
+//     if(!user) return res.status(400).send('email not found')
+//     const userid = user._id;
+//     try{
+//     const financial = await Financial.findOne({userid:userid,income:req.body.income,assets:req.body.assets,liabilities:req.body.liabilities})
+//     const financialId = financial._id;
+//     console.log("Financial object to be deleted: ", financial);
+//     try{
+//         const deletedFinancial = await Financial.findByIdAndDelete(financialId);
+//         if (!deletedFinancial) {
+//             return res.status(404).json({ message: "Financial record not found." });
+//         }
 
-        res.status(200).json({ message: "Financial record deleted successfully.", data: deletedFinancial });
-    }catch(error){
-        console.log("Error in deleting financial application: ", error)
-        res.status(500).json({ message: "Server error", error: error.message });
+//         res.status(200).json({ message: "Financial record deleted successfully.", data: deletedFinancial });
+//     }catch(error){
+//         console.log("Error in deleting financial application: ", error)
+//         res.status(500).json({ message: "Server error", error: error.message });
+//     }
+
+// }catch(error){
+//     console.log("Error in finding financial application: ", error)
+// }})
+
+router.delete('/deleteFinanceApplication', async (req, res) => {
+    try {
+      const { email, records } = req.body;
+  
+      // Find the user by email
+      const user = await User.findOne({ email: email });
+      if (!user) {
+        return res.status(400).json({ message: 'Email not found' });
+      }
+      const userId = user._id;
+  
+      // Validate that `records` is an array
+      if (!Array.isArray(records) || records.length === 0) {
+        return res.status(400).json({ message: 'No records to delete' });
+      }
+  
+      // Build an $or array of conditions
+      // Each element in the array matches one record to be deleted
+      const conditions = records.map(r => ({
+        userid: userId,
+        income: r.income,
+        assets: r.assets,
+        liabilities: r.liabilities,
+        expenses: r.expenses
+      }));
+  
+      // Delete all matching records in one go
+      const deletedResult = await Financial.deleteMany({ $or: conditions });
+  
+      if (deletedResult.deletedCount === 0) {
+        return res.status(404).json({ message: 'No matching financial records found to delete.' });
+      }
+  
+      res.status(200).json({
+        message: 'Financial records deleted successfully.',
+        data: deletedResult
+      });
+    } catch (error) {
+      console.error('Error in deleting financial applications:', error);
+      res.status(500).json({ message: 'Server error', error: error.message });
     }
-
-}catch(error){
-    console.log("Error in finding financial application: ", error)
-}})
+  });
+  
 
 router.put('/updateFinanceApplication', async(req,res) => {
 
