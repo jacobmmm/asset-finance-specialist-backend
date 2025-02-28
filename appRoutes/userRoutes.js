@@ -213,6 +213,8 @@ router.get('/getFinanceApplication', async(req,res) => {
 router.delete('/deleteFinanceApplication', async (req, res) => {
     try {
       const { email, records } = req.body;
+
+      console.log("Email: ", email);
   
       // Find the user by email
       const user = await User.findOne({ email: email });
@@ -235,6 +237,8 @@ router.delete('/deleteFinanceApplication', async (req, res) => {
         liabilities: r.liabilities,
         expenses: r.expenses
       }));
+
+      console.log("Conditions: ", conditions);
   
       // Delete all matching records in one go
       const deletedResult = await Financial.deleteMany({ $or: conditions });
