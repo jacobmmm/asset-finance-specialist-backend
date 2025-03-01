@@ -258,38 +258,38 @@ router.delete('/deleteFinanceApplication', async (req, res) => {
   });
   
 
-router.put('/updateFinanceApplication', async(req,res) => {
+// router.put('/updateFinanceApplication', async(req,res) => {
 
-    const user = await User.findOne({email:req.body.email})
-    if(!user) return res.status(400).send('email not found')
-    const userid = user._id;
-    const attributes = req.body.attributes;
-    const values = req.body.values;
-    const attrLength = attributes.length;
+//     const user = await User.findOne({email:req.body.email})
+//     if(!user) return res.status(400).send('email not found')
+//     const userid = user._id;
+//     const attributes = req.body.attributes;
+//     const values = req.body.values;
+//     const attrLength = attributes.length;
 
-        try{
-            const financial = await Financial.findOne({userid:userid,income:req.body.income,assets:req.body.assets,liabilities:req.body.liabilities})
+//         try{
+//             const financial = await Financial.findOne({userid:userid,income:req.body.income,assets:req.body.assets,liabilities:req.body.liabilities})
 
-            for(let i=0;i<attrLength;i++){
-                financial[attributes[i]] = values[i];
-            }
+//             for(let i=0;i<attrLength;i++){
+//                 financial[attributes[i]] = values[i];
+//             }
 
-            console.log("Financial object to be updated: ", financial);
-            try{
-                const updatedFinancial = await financial.save();
-                if (!updatedFinancial) {
-                    return res.status(404).json({ message: "Financial record not found." });
-                }
+//             console.log("Financial object to be updated: ", financial);
+//             try{
+//                 const updatedFinancial = await financial.save();
+//                 if (!updatedFinancial) {
+//                     return res.status(404).json({ message: "Financial record not found." });
+//                 }
         
-                res.status(200).json({ message: "Financial record updated successfully.", data: updatedFinancial });
-            }catch(error){
-                console.log("Error in updating financial application: ", error)
-                res.status(500).json({ message: "Server error", error: error.message });
-            }
+//                 res.status(200).json({ message: "Financial record updated successfully.", data: updatedFinancial });
+//             }catch(error){
+//                 console.log("Error in updating financial application: ", error)
+//                 res.status(500).json({ message: "Server error", error: error.message });
+//             }
         
-        }catch(error){
-            console.log("Error in finding financial application: ", error)
-        }    
+//         }catch(error){
+//             console.log("Error in finding financial application: ", error)
+//         }    
 
 
 
@@ -297,6 +297,57 @@ router.put('/updateFinanceApplication', async(req,res) => {
 
 
 
-    } )
+//     } )
+
+router.put('/updateFinanceApplication', async (req, res) => {
+    try {
+      const { email, records } = req.body;
+      const user = await User.findOne({ email });
+      if (!user) return res.status(400).send('email not found');
+      const userid = user._id;
+  
+      // Validate that the records array exists and is non-empty.
+      if (!Array.isArray(records) || records.length === 0) {
+        return res.status(400).json({ message: 'No records provided for update.' });
+      }
+  
+      // Build an array of bulk operations.
+      const bulkOps = records.map(record => {
+        // Destructure the identifying fields and update instructions from each record.
+        const { income, assets, liabilities, expenses, attributes, values } = record;
+  
+        // Validate that attributes and values arrays exist and match in length.
+        if (!attributes || !values || attributes.length !== values.length) {
+          throw new Error('Attributes and values arrays must be provided and have the same length.');
+        }
+  
+        // Build the update object from the provided attributes.
+        let updateObj = {};
+        for (let i = 0; i < attributes.length; i++) {
+          updateObj[attributes[i]] = values[i];
+        }
+  
+        return {
+          updateOne: {
+            // Include expenses along with income, assets, and liabilities in the filter.
+            filter: { userid, income, assets, liabilities, expenses },
+            update: { $set: updateObj }
+          }
+        };
+      });
+  
+      // Execute the bulk update operation.
+      const result = await Financial.bulkWrite(bulkOps);
+  
+      res.status(200).json({
+        message: 'Financial records updated successfully.',
+        data: result
+      });
+    } catch (error) {
+      console.error('Error in updating financial applications:', error);
+      res.status(500).json({ message: 'Server error', error: error.message });
+    }
+  });
+  
 
 module.exports = router;
