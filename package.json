@@ -4,7 +4,9 @@
   "description": "backend code consisting of RESTful apis for the finance application website",
   "main": "index.js",
   "scripts": {
-    "devStart": "nodemon index.js"
+    "devStart": "nodemon index.js",
+    "start": "nodemon index.js"
+    
   },
   "author": "Jacob Mammen",
   "license": "ISC",

@@ -1,7 +1,7 @@
 const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
-const { connectDB } = require('./startup/database');
+const { connectDB, isDBConnected } = require('./startup/database');
 const  setupRoutes  = require('./startup/routes');
 const cors = require('cors');
 
@@ -12,6 +12,8 @@ app.use(cors({
   credentials: true,
 }));
 
+// Set up routes first
+setupRoutes(app);
 
 // mongoose.connect('mongodb://localhost:27017/Cluster0DB', { useNewUrlParser: true, useUnifiedTopology: true });
 // const db = mongoose.connection;
@@ -19,17 +21,28 @@ app.use(cors({
 // db.once('open', function() {
 //   console.log('Connected to MongoDB successfully.');
 // });
+
 async function startServer() {
-  await connectDB(); // Ensures DB is connected before the server starts
-  const port = process.env.PORT || 3000
-  app.listen(port,() => console.log(`Listening on port ${port}....`));
-  // app.listen(3000, () => {
-  //     console.log('Server is running on port 3000');
-  // });
+  try {
+    console.log('Attempting to connect to database...');
+    await connectDB(); // Ensures DB is connected before the server starts
+    
+    // Verify connection is ready
+    if (!isDBConnected()) {
+      throw new Error('Database connection not ready');
+    }
+    
+    const port = process.env.PORT || 3000;
+    app.listen(port, () => {
+      console.log(`Server is running on port ${port}....`);
+      console.log('Database connection status: Connected');
+    });
+    
+  } catch (error) {
+    console.error('Error starting the server:', error);
+    console.error('Please check your MongoDB connection string and network connectivity');
+    process.exit(1); // Exit if we can't connect to database
+  }
 }
 
-startServer().catch(error => {
-  console.error('Error starting the server:', error);
-});
-
-setupRoutes(app); // Pass the app instance to the setupRoutes function
+startServer();
