@@ -10,6 +10,9 @@ const userSchema = new mongoose.Schema({
     address: { type: String, required: true },
 }, { timestamps: true });
 
+// In models/user.js, add this after the schema definition:
+userSchema.index({ email: 1 });
+
 const User = mongoose.model('User', userSchema);
 
 const generateAuthToken = function(object){

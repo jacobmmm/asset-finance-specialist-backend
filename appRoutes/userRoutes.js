@@ -40,7 +40,7 @@ router.post('/register', async(req,res) => {
     try {
         console.log("Body of register", req.body)
         
-        const salt = await bcrypt.genSalt(18);
+        const salt = await bcrypt.genSalt(10);
         const password = await bcrypt.hash(req.body.password, salt);
         const name = req.body.firstName + " " + req.body.lastName;
         const email = req.body.email;

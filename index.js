@@ -6,7 +6,11 @@ const  setupRoutes  = require('./startup/routes');
 const cors = require('cors');
 
 app.use(cors({
-  origin: 'https://asset-finance-specialist-front-end.onrender.com', // Allow only frontend
+  origin: [
+    'https://asset-finance-specialist-front-end.onrender.com',
+    'http://localhost:3000',
+    'http://localhost:3001'
+  ], // Allow multiple frontends
   methods: 'GET,POST,PUT,DELETE',
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
