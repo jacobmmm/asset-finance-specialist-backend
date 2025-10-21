@@ -25,13 +25,13 @@ router.use((req, res, next) => {
     console.log("User router called");
     
     // Check if database is connected
-    if (!isDBConnected()) {
-        console.error('Database not connected. Connection state:', mongoose.connection.readyState);
-        return res.status(503).json({ 
-            message: "Database connection not available", 
-            connectionState: mongoose.connection.readyState 
-        });
-    }
+    // if (!isDBConnected()) {
+    //     console.error('Database not connected. Connection state:', mongoose.connection.readyState);
+    //     return res.status(503).json({ 
+    //         message: "Database connection not available", 
+    //         connectionState: mongoose.connection.readyState 
+    //     });
+    // }
     
     next();
 });
