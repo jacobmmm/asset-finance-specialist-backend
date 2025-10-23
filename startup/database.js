@@ -9,9 +9,11 @@ const mongoURI = "mongodb+srv://jacobMammen:karkaKaka%2345@cluster0.uexj2.mongod
 async function connectDB() {
     try {
         await mongoose.connect(mongoURI, {
-            serverSelectionTimeoutMS: 30000, // 30 seconds
-            connectTimeoutMS: 30000, // 30 seconds
-            socketTimeoutMS: 45000, // 45 seconds
+            serverSelectionTimeoutMS: 120000, // 30 seconds
+            connectTimeoutMS: 120000, // 30 seconds
+            serverApi: { version: '1' },
+            tls: true,
+            //socketTimeoutMS: 45000, // 45 seconds
             maxPoolSize: 10, // Maintain up to 10 socket connections
             minPoolSize: 5, // Maintain a minimum of 5 socket connections
             maxIdleTimeMS: 30000, // Close connections after 30 seconds of inactivity

@@ -112,17 +112,44 @@ router.post('/register', async(req,res) => {
 
 router.post('/login', async(req,res) => {
     try {
+        // Validate request body
+        if (!req.body.email || !req.body.password) {
+            return res.status(400).json({ message: 'Email and password are required' });
+        }
+
         const rUser = await User.findOne({email:req.body.email}).maxTimeMS(5000)
 
         if(!rUser)return res.status(400).send('Invalid email')
 
         const validPassword = await bcrypt.compare(req.body.password, rUser.password)
        
-        if(!validPassword) return res.status(400).send('Invalid  password')
+        if(!validPassword) return res.status(400).send('Invalid password')
+
+        // Check if user needs password migration
+        if (rUser.passwordMigrationStatus === 'pending') {
+            try {
+                // Rehash password with new salt rounds
+                const newSalt = await bcrypt.genSalt(10);
+                const newHashedPassword = await bcrypt.hash(req.body.password, newSalt);
+                
+                // Update user with new password hash
+                await User.findByIdAndUpdate(rUser._id, {
+                    password: newHashedPassword,
+                    passwordMigrationStatus: 'completed',
+                    migrationDate: new Date()
+                });
+                
+                console.log(`Password migrated for user: ${rUser.email}`);
+            } catch (migrationError) {
+                console.error("Error during password migration:", migrationError);
+                // Continue with login even if migration fails
+                // Migration will retry on next login
+            }
+        }
 
         const token = generateAuthToken(rUser)
 
-        res.status(200).json({'message':'Login successful'})
+        res.status(200).json({'message':'Login successful', 'token': token})
         
     } catch (error) {
         console.error("Database operation error in login:", error);
