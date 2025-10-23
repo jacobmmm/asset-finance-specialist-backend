@@ -8,10 +8,17 @@ const userSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     address: { type: String, required: true },
+    passwordMigrationStatus: { 
+        type: String, 
+        enum: ['pending', 'completed', 'failed'], 
+        default: 'pending' 
+    },
+    migrationDate: { type: Date }
 }, { timestamps: true });
 
-// In models/user.js, add this after the schema definition:
-userSchema.index({ email: 1 });
+// Email index is automatically created by unique: true constraint
+// Explicit index not needed, but kept for documentation
+// userSchema.index({ email: 1 });
 
 const User = mongoose.model('User', userSchema);
 
